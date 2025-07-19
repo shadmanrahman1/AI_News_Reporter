@@ -274,13 +274,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Streamlit** for the excellent web framework
 - **FastAPI** for the high-performance backend framework
 
-## 📞 Support
-
-For questions, issues, or feature requests:
-- 📧 Email: your.email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/ai-news-reporter/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/ai-news-reporter/discussions)
-
 ---
 
 **Built with ❤️ for the future of AI-powered journalism**
