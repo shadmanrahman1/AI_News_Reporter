@@ -168,3 +168,6 @@ secrets.json
 test_*.mp3
 test_*.wav
 test_output.*
+
+# Development containers
+.devcontainer/
