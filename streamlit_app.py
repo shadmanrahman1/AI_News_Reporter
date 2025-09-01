@@ -44,38 +44,36 @@ def generate_news_content_direct(topics, source_type="both"):
     try:
         # Initialize scraper
         scraper = NewsScraper()
-        
+
         # Process news
         news_results = {}
         social_results = {}
-        
+
         if source_type in ["both", "news"]:
-            for topic in topics:
-                news_data = run_async(scraper.scrape_topic_news(topic))
-                news_results[topic] = news_data
-        
+            # Use the correct method name - scrape_news takes a list of topics
+            news_data = run_async(scraper.scrape_news(topics))
+            news_results = news_data.get("news_analysis", {})
+
         if source_type in ["both", "social_media"]:
-            for topic in topics:
-                social_data = run_async(analyze_social_discussions(topic))
-                social_results[topic] = social_data
-        
+            # Use the correct function - analyze_social_discussions takes a list of topics
+            social_data = run_async(analyze_social_discussions(topics))
+            social_results = social_data.get("social_analysis", {})
+
         # Generate broadcast news
         news_summary = generate_broadcast_news_with_groq(
-            news_results=news_results,
-            social_results=social_results,
-            topics=topics
+            news_results=news_results, social_results=social_results, topics=topics
         )
-        
+
         # Generate audio
         audio_path = tts_to_audio(news_summary)
-        
+
         return {
             "news_summary": news_summary,
             "audio_path": audio_path,
             "news_results": news_results,
-            "social_results": social_results
+            "social_results": social_results,
         }
-        
+
     except Exception as e:
         st.error(f"Error generating content: {str(e)}")
         return None
@@ -95,7 +93,7 @@ def main():
 
     # API Key Configuration - Support both environment and Streamlit secrets
     api_key = os.getenv("GROQ_API_KEY")
-    
+
     # Try Streamlit secrets if no environment variable
     if not api_key:
         try:
@@ -199,7 +197,7 @@ def main():
         for i, topic in enumerate(st.session_state.topics):
             col1, col2 = st.columns([4, 1])
             with col1:
-                st.markdown(f"**{i+1}.** {topic}")
+                st.markdown(f"**{i + 1}.** {topic}")
             with col2:
                 if st.button("🗑️", key=f"delete_{i}", help="Remove topic"):
                     st.session_state.topics.pop(i)
@@ -212,7 +210,9 @@ def main():
 
         # Generate news button
         st.markdown("---")
-        if st.button("🎙️ Generate News Report", use_container_width=True, type="primary"):
+        if st.button(
+            "🎙️ Generate News Report", use_container_width=True, type="primary"
+        ):
             if not st.session_state.topics:
                 st.warning("Please add at least one topic!")
                 return
@@ -220,8 +220,7 @@ def main():
             with st.spinner("🔍 Gathering news and generating report..."):
                 # Direct function call instead of API call
                 result = generate_news_content_direct(
-                    topics=st.session_state.topics,
-                    source_type=backend_source
+                    topics=st.session_state.topics, source_type=backend_source
                 )
 
                 if result and result.get("news_summary"):
@@ -232,20 +231,22 @@ def main():
                     st.markdown(result["news_summary"])
 
                     # Audio player
-                    if result.get("audio_path") and os.path.exists(result["audio_path"]):
+                    if result.get("audio_path") and os.path.exists(
+                        result["audio_path"]
+                    ):
                         st.markdown("### 🎵 Audio Report")
-                        
+
                         try:
                             with open(result["audio_path"], "rb") as audio_file:
                                 audio_bytes = audio_file.read()
                                 st.audio(audio_bytes, format="audio/mp3")
-                                
+
                                 # Download button
                                 st.download_button(
                                     label="⬇️ Download Audio Report",
                                     data=audio_bytes,
                                     file_name=f"news_report_{len(st.session_state.topics)}_topics.mp3",
-                                    mime="audio/mp3"
+                                    mime="audio/mp3",
                                 )
                         except Exception as e:
                             st.error(f"Error loading audio: {e}")
@@ -255,8 +256,10 @@ def main():
                         if result.get("news_results"):
                             st.markdown("**📰 News Sources:**")
                             for topic, data in result["news_results"].items():
-                                st.markdown(f"- **{topic}**: {len(str(data))} characters of news data")
-                        
+                                st.markdown(
+                                    f"- **{topic}**: {len(str(data))} characters of news data"
+                                )
+
                         if result.get("social_results"):
                             st.markdown("**📱 Social Media Sources:**")
                             for topic, data in result["social_results"].items():
